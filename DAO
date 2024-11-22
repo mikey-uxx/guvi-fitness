@@ -1,11 +1,11 @@
 import java.util.List;
 
 public interface UserDao {
-   void addUser(User user);                // Create a new user
-   User getUserById(int userId);           // Retrieve a user by ID
-   List<User> getAllUsers();               // Retrieve all users
-   void updateUser(User user);             // Update user details
-   void deleteUser(int userId);            // Delete a user
+   void addUser(User user);                
+   User getUserById(int userId);           
+   List<User> getAllUsers();               
+   void updateUser(User user);            
+   void deleteUser(int userId);            
 }
 
 import java.sql.*;
@@ -14,8 +14,8 @@ import java.util.List;
 
 public class UserDaoImpl implements UserDao {
    private static final String DB_URL = "jdbc:mysql://localhost:3306/fitness_app";
-   private static final String DB_USER = "root"; // Your MySQL username
-   private static final String DB_PASSWORD = "your_password"; // Your MySQL password
+   private static final String DB_USER = "root"; 
+   private static final String DB_PASSWORD = "your_password"; 
 
    // Add a new user
    @Override
