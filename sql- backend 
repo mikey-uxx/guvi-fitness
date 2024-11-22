@@ -1,0 +1,72 @@
+
+CREATE TABLE Users (
+   id INT AUTO_INCREMENT PRIMARY KEY,
+   username VARCHAR(50) NOT NULL UNIQUE,
+   email VARCHAR(100) NOT NULL UNIQUE,
+   password VARCHAR(255) NOT NULL,
+   age INT NOT NULL,
+   gender ENUM('Male', 'Female', 'Other'),
+   height FLOAT NOT NULL,
+   weight FLOAT NOT NULL
+);
+
+CREATE TABLE Workouts (
+   id INT AUTO_INCREMENT PRIMARY KEY,
+   user_id INT NOT NULL,
+   exercise_name VARCHAR(100) NOT NULL,
+   duration INT NOT NULL,
+   calories_burned INT NOT NULL,
+   FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE Nutrition (
+   id INT AUTO_INCREMENT PRIMARY KEY,
+   user_id INT NOT NULL,
+   food_item VARCHAR(100) NOT NULL,
+   calories INT NOT NULL,
+   date DATE NOT NULL,
+   FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE Goals (
+   id INT AUTO_INCREMENT PRIMARY KEY,
+   user_id INT NOT NULL,
+   goal_type VARCHAR(50) NOT NULL,
+   target_date DATE NOT NULL,
+   target_value FLOAT NOT NULL,
+   FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
+);
+
+INSERT INTO Users (username, email, password, age, gender, height, weight)
+VALUES
+('john_doe', 'john@example.com', 'hashed_password_1', 30, 'Male', 180, 75),
+('jane_smith', 'jane@example.com', 'hashed_password_2', 25, 'Female', 165, 60);
+
+INSERT INTO Workouts (user_id, exercise_name, duration, calories_burned)
+VALUES
+(1, 'Running', 30, 300),
+(1, 'Cycling', 45, 400),
+(2, 'Yoga', 60, 200);
+
+INSERT INTO Nutrition (user_id, food_item, calories, date)
+VALUES
+(1, 'Oatmeal', 150, '2024-11-21'),
+(2, 'Salad', 200, '2024-11-21'),
+(2, 'Chicken Breast', 300, '2024-11-21');
+
+INSERT INTO Goals (user_id, goal_type, target_date, target_value)
+VALUES
+(1, 'Weight Loss', '2025-01-01', 70),
+(2, 'Muscle Gain', '2025-03-01', 65);
+
+SELECT u.username, w.exercise_name, w.duration, w.calories_burned
+FROM Users u
+JOIN Workouts w ON u.id = w.user_id;
+
+SELECT u.username, n.food_item, n.calories, n.date
+FROM Users u
+JOIN Nutrition n ON u.id = n.user_id;
+
+SELECT u.username, g.goal_type, g.target_date, g.target_value
+FROM Users u
+JOIN Goals g ON u.id = g.user_id;

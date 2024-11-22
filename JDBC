@@ -1,0 +1,68 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class JDBCExample {
+
+   // JDBC URL, username, and password
+   private static final String DB_URL = "jdbc:mysql://localhost:3306/fitness_app";
+   private static final String DB_USER = "root"; // Your MySQL username
+   private static final String DB_PASSWORD = "your_password"; // Your MySQL password
+
+   public static void main(String[] args) {
+       try {
+           // Step 1: Load MySQL JDBC Driver
+           Class.forName("com.mysql.cj.jdbc.Driver");
+
+           // Step 2: Establish Connection
+           Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+           System.out.println("Database connected successfully!");
+
+           // Step 3: Perform Database Operations
+           // 3.1 Insert a user
+           insertUser(connection, "john_doe", "john@example.com", "password123");
+
+           // 3.2 Retrieve all users
+           retrieveUsers(connection);
+
+           // Close the connection
+           connection.close();
+       } catch (ClassNotFoundException e) {
+           System.err.println("JDBC Driver not found: " + e.getMessage());
+       } catch (SQLException e) {
+           System.err.println("Database connection error: " + e.getMessage());
+       }
+   }
+
+   // Method to insert a user into the database
+   private static void insertUser(Connection connection, String username, String email, String password) {
+       String insertQuery = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+       try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+           preparedStatement.setString(1, username);
+           preparedStatement.setString(2, email);
+           preparedStatement.setString(3, password);
+           int rowsAffected = preparedStatement.executeUpdate();
+           System.out.println(rowsAffected + " row(s) inserted.");
+       } catch (SQLException e) {
+           System.err.println("Error inserting user: " + e.getMessage());
+       }
+   }
+
+   // Method to retrieve all users from the database
+   private static void retrieveUsers(Connection connection) {
+       String selectQuery = "SELECT * FROM users";
+       try (PreparedStatement preparedStatement = connection.prepareStatement(selectQuery)) {
+           ResultSet resultSet = preparedStatement.executeQuery();
+           System.out.println("Users in the database:");
+           while (resultSet.next()) {
+               System.out.println("ID: " + resultSet.getInt("id") +
+                       ", Username: " + resultSet.getString("username") +
+                       ", Email: " + resultSet.getString("email"));
+           }
+       } catch (SQLException e) {
+           System.err.println("Error retrieving users: " + e.getMessage());
+       }
+   }
+}

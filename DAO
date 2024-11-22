@@ -1,0 +1,152 @@
+import java.util.List;
+
+public interface UserDao {
+   void addUser(User user);                // Create a new user
+   User getUserById(int userId);           // Retrieve a user by ID
+   List<User> getAllUsers();               // Retrieve all users
+   void updateUser(User user);             // Update user details
+   void deleteUser(int userId);            // Delete a user
+}
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class UserDaoImpl implements UserDao {
+   private static final String DB_URL = "jdbc:mysql://localhost:3306/fitness_app";
+   private static final String DB_USER = "root"; // Your MySQL username
+   private static final String DB_PASSWORD = "your_password"; // Your MySQL password
+
+   // Add a new user
+   @Override
+   public void addUser(User user) {
+       String query = "INSERT INTO users (name, password, regularity_points, time_spent) VALUES (?, ?, ?, ?)";
+       try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            PreparedStatement statement = connection.prepareStatement(query)) {
+
+           statement.setString(1, user.getName());
+           statement.setString(2, user.getPassword());
+           statement.setInt(3, user.getRegularityPoints());
+           statement.setInt(4, user.getTimeSpent());
+
+           int rows = statement.executeUpdate();
+           System.out.println(rows + " user(s) added.");
+       } catch (SQLException e) {
+           e.printStackTrace();
+       }
+   }
+
+   // Retrieve a user by ID
+   @Override
+   public User getUserById(int userId) {
+       String query = "SELECT * FROM users WHERE user_id = ?";
+       try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            PreparedStatement statement = connection.prepareStatement(query)) {
+
+           statement.setInt(1, userId);
+           ResultSet resultSet = statement.executeQuery();
+
+           if (resultSet.next()) {
+               return new User(
+                       resultSet.getInt("user_id"),
+                       resultSet.getString("name"),
+                       resultSet.getString("password"),
+                       resultSet.getInt("regularity_points"),
+                       resultSet.getInt("time_spent")
+               );
+           }
+       } catch (SQLException e) {
+           e.printStackTrace();
+       }
+       return null;
+   }
+
+   // Retrieve all users
+   @Override
+   public List<User> getAllUsers() {
+       List<User> users = new ArrayList<>();
+       String query = "SELECT * FROM users";
+       try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query)) {
+
+           while (resultSet.next()) {
+               User user = new User(
+                       resultSet.getInt("user_id"),
+                       resultSet.getString("name"),
+                       resultSet.getString("password"),
+                       resultSet.getInt("regularity_points"),
+                       resultSet.getInt("time_spent")
+               );
+               users.add(user);
+           }
+       } catch (SQLException e) {
+           e.printStackTrace();
+       }
+       return users;
+   }
+
+   // Update user details
+   @Override
+   public void updateUser(User user) {
+       String query = "UPDATE users SET name = ?, password = ?, regularity_points = ?, time_spent = ? WHERE user_id = ?";
+       try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            PreparedStatement statement = connection.prepareStatement(query)) {
+
+           statement.setString(1, user.getName());
+           statement.setString(2, user.getPassword());
+           statement.setInt(3, user.getRegularityPoints());
+           statement.setInt(4, user.getTimeSpent());
+           statement.setInt(5, user.getUserId());
+
+           int rows = statement.executeUpdate();
+           System.out.println(rows + " user(s) updated.");
+       } catch (SQLException e) {
+           e.printStackTrace();
+       }
+   }
+
+   // Delete a user
+   @Override
+   public void deleteUser(int userId) {
+       String query = "DELETE FROM users WHERE user_id = ?";
+       try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            PreparedStatement statement = connection.prepareStatement(query)) {
+
+           statement.setInt(1, userId);
+           int rows = statement.executeUpdate();
+           System.out.println(rows + " user(s) deleted.");
+       } catch (SQLException e) {
+           e.printStackTrace();
+       }
+   }
+}
+
+import java.util.List;
+
+public class Main {
+   public static void main(String[] args) {
+       UserDao userDao = new UserDaoImpl();
+
+       // Add a user
+       User user1 = new User(0, "John Doe", "password123", 10, 120);
+       userDao.addUser(user1);
+
+       // Retrieve a user by ID
+       User retrievedUser = userDao.getUserById(1);
+       System.out.println("Retrieved User: " + retrievedUser.getName());
+
+       // Retrieve all users
+       List<User> users = userDao.getAllUsers();
+       for (User user : users) {
+           System.out.println(user.getName() + " - " + user.getRegularityPoints() + " points");
+       }
+
+       // Update a user
+       user1.setRegularityPoints(20);
+       userDao.updateUser(user1);
+
+       // Delete a user
+       userDao.deleteUser(1);
+   }
+}
