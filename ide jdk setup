@@ -1,0 +1,172 @@
+JDK, IDE  SETUP
+ 
+Following is the set up of our JDK (Java Development Kit) and IDE (Integrated Development Environment) 
+for our fitness and nutrition web application:
+ 
+ 
+The JDK is required to compile and run Java programs.
+ 
+1. Download JDK
+ 
+Visit the Oracle JDK or OpenJDK website.
+ 
+Download the latest version (e.g., JDK 17 or 21) compatible with your operating system (Windows, Mac, Linux).
+ 
+ 
+2. Install JDK
+ 
+Run the installer and follow the on-screen instructions.
+ 
+During installation, note the installation path (e.g., C:\Program Files\Java\jdk-17).
+ 
+ 
+3. Set Environment Variables
+ 
+Open System Properties:
+ 
+On Windows: Press Win + S and search for "Environment Variables".
+ 
+ 
+Add a new System Variable:
+ 
+Name: JAVA_HOME
+ 
+Value: JDK installation path (e.g., C:\Program Files\Java\jdk-17).
+ 
+ 
+Update the Path variable:
+ 
+Add %JAVA_HOME%\bin to the Path.
+ 
+ 
+ 
+4. Verify Installation
+ 
+Open a terminal or command prompt.
+ 
+Run:
+ 
+java -version
+ 
+It should display the installed JDK version.
+ 
+ 
+ 
+---
+ 
+Step 2: Install an IDE
+ 
+We had two options for this , they are the following:
+ 
+ 
+ 
+1. IntelliJ IDEA (Recommended for Spring Boot)
+ 
+Download: IntelliJ IDEA Community Edition.
+ 
+Features:
+ 
+Built-in support for Spring Boot.
+ 
+Excellent debugging and auto-completion.
+ 
+ 
+ 
+ 
+2. Eclipse IDE
+ 
+Download: Eclipse IDE.
+ 
+Features:
+ 
+Good for general Java development.
+ 
+Lightweight compared to IntelliJ.
+ 
+ 
+ 
+---
+ 
+Step 3: Configure IDE for Spring Boot
+ 
+If using IntelliJ IDEA:
+ 
+1. Install IntelliJ IDEA Community Edition.
+ 
+ 
+2. Install the Spring Boot Plugin (if not pre-installed):
+ 
+Go to File > Settings > Plugins.
+ 
+Search for "Spring Boot" and install it.
+ 
+ 
+ 
+3. Create a Spring Boot Project:
+ 
+Open IntelliJ and select New Project > Spring Initializr.
+ 
+Choose dependencies:
+ 
+Spring Web
+ 
+Spring Data JPA
+ 
+MySQL Driver
+ 
+Spring Security (if needed)
+ 
+ 
+Set the project SDK to the installed JDK version.
+ 
+Click Finish to generate the project structure.
+ 
+ 
+
+ 
+If using Eclipse:
+ 
+1. Install the Spring Tool Suite (STS) plugin:
+ 
+Go to Help > Eclipse Marketplace.
+ 
+Search for "Spring Tool Suite" and install.
+ 
+ 
+ 
+2. Create a new Spring Boot project:
+ 
+Go to File > New > Spring Starter Project.
+ 
+Configure dependencies and project structure.
+ 
+
+ 
+ 
+---
+ 
+Step 4: Install MySQL
+ 
+1. Download and Install MySQL:
+ 
+Visit MySQL Downloads.
+ 
+Install MySQL Server and MySQL Workbench.
+ 
+ 
+2. Configure Database:
+ 
+Set up a root password during installation.
+ 
+Create a database for your application:
+ 
+CREATE DATABASE fitness_app;
+ 
+ 
+3. Test Connection:
+ 
+Use MySQL Workbench to connect to the database.
+ 
+Verify the connection using the root user and the password you set.
+ 
+
