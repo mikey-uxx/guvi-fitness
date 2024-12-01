@@ -1,58 +1,61 @@
-import java.util.List;
+User DAO.java
 
-public interface UserDao {
-   void addUser(User user);                
-   User getUserById(int userId);           
-   List<User> getAllUsers();               
-   void updateUser(User user);            
-   void deleteUser(int userId);            
-}
-
+package dao;
+ 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-
-public class UserDaoImpl implements UserDao {
+import model.User;
+ 
+public class UserDAO {
    private static final String DB_URL = "jdbc:mysql://localhost:3306/fitness_app";
-   private static final String DB_USER = "root"; 
-   private static final String DB_PASSWORD = "your_password"; 
-
+   private static final String DB_USER = "root";
+   private static final String DB_PASSWORD = "your_password";
+ 
    // Add a new user
-   @Override
-   public void addUser(User user) {
-       String query = "INSERT INTO users (name, password, regularity_points, time_spent) VALUES (?, ?, ?, ?)";
+   public boolean addUser(User user) {
+       String query = "INSERT INTO Users (username, email, password, age, gender, height, weight) VALUES
+ 
+ 
+ 
+ 
+String query = "INSERT INTO Users (username, email, password, age, gender, height, weight) VALUES (?, ?, ?, ?, ?, ?, ?)";
        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
             PreparedStatement statement = connection.prepareStatement(query)) {
-
-           statement.setString(1, user.getName());
-           statement.setString(2, user.getPassword());
-           statement.setInt(3, user.getRegularityPoints());
-           statement.setInt(4, user.getTimeSpent());
-
-           int rows = statement.executeUpdate();
-           System.out.println(rows + " user(s) added.");
+ 
+           statement.setString(1, user.getUsername());
+           statement.setString(2, user.getEmail());
+           statement.setString(3, user.getPassword());
+           statement.setInt(4, user.getAge());
+           statement.setString(5, user.getGender());
+           statement.setDouble(6, user.getHeight());
+           statement.setDouble(7, user.getWeight());
+ 
+           return statement.executeUpdate() > 0;
        } catch (SQLException e) {
            e.printStackTrace();
+           return false;
        }
    }
-
-   // Retrieve a user by ID
-   @Override
-   public User getUserById(int userId) {
-       String query = "SELECT * FROM users WHERE user_id = ?";
+ 
+   // Retrieve a user by username or email
+   public User getUser(String usernameOrEmail) {
+       String query = "SELECT * FROM Users WHERE username = ? OR email = ?";
        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
             PreparedStatement statement = connection.prepareStatement(query)) {
-
-           statement.setInt(1, userId);
+ 
+           statement.setString(1, usernameOrEmail);
+           statement.setString(2, usernameOrEmail);
+ 
            ResultSet resultSet = statement.executeQuery();
-
            if (resultSet.next()) {
                return new User(
-                       resultSet.getInt("user_id"),
-                       resultSet.getString("name"),
+                       resultSet.getInt("id"),
+                       resultSet.getString("username"),
+                       resultSet.getString("email"),
                        resultSet.getString("password"),
-                       resultSet.getInt("regularity_points"),
-                       resultSet.getInt("time_spent")
+                       resultSet.getInt("age"),
+                       resultSet.getString("gender"),
+                       resultSet.getDouble("height"),
+                       resultSet.getDouble("weight")
                );
            }
        } catch (SQLException e) {
@@ -60,93 +63,228 @@ public class UserDaoImpl implements UserDao {
        }
        return null;
    }
-
-   // Retrieve all users
-   @Override
-   public List<User> getAllUsers() {
-       List<User> users = new ArrayList<>();
-       String query = "SELECT * FROM users";
+ 
+   // Update a user's details
+   public boolean updateUser(User user) {
+       String query = "UPDATE Users SET username = ?, email = ?, password = ?, age = ?, gender = ?, height = ?, weight = ? WHERE id = ?";
        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(query)) {
+            PreparedStatement statement = connection.prepareStatement(query)) {
+ 
+           statement.setString(1, user.getUsername());
+           statement.setString(2, user.getEmail());
+           statement.setString(3, user.getPassword());
+           statement.setInt(4, user.getAge());
+           statement.setString(5, user.getGender());
+           statement.setDouble(6, user.getHeight());
+           statement.setDouble(7, user.getWeight());
+           statement.setInt(8, user.getId());
+ 
+           return statement.executeUpdate() > 0;
+       } catch (SQLException e) {
+           e.printStackTrace();
+           return false;
+       }
+   }
+ 
+   // Delete a user
+   public boolean deleteUser(int userId) {
+       String query = "DELETE FROM Users WHERE id = ?";
+       try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            PreparedStatement statement = connection.prepareStatement(query)) {
+ 
+           statement.setInt(1, userId);
+           return statement.executeUpdate() > 0;
+       } catch (SQLException e) {
+           e.printStackTrace();
+           return false;
+       }
+   }
+}
+ 
+ 
+ 
+ 
+ 
+ 
+Workout DAO.java
 
+package dao;
+ 
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import model.Workout;
+ 
+public class WorkoutDAO {
+   private static final String DB_URL = "jdbc:mysql://localhost:3306/fitness_app";
+   private static final String DB_USER = "root";
+   private static final String DB_PASSWORD = "your_password";
+ 
+   // Add a new workout
+   public boolean addWorkout(Workout workout) {
+       String query = "INSERT INTO Workouts (user_id, exercise_name, duration, calories_burned) VALUES (?, ?, ?, ?)";
+       try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            PreparedStatement statement = connection.prepareStatement(query)) {
+ 
+           statement.setInt(1, workout.getUserId());
+           statement.setString(2, workout.getExerciseName());
+           statement.setInt(3, workout.getDuration());
+           statement.setDouble(4, workout.getCaloriesBurned());
+ 
+           return statement.executeUpdate() > 0;
+       } catch (SQLException e) {
+           e.printStackTrace();
+           return false;
+       }
+   }
+ 
+   // Retrieve all workouts for a user
+   public List<Workout> getWorkoutsByUserId(int userId) {
+       List<Workout> workouts = new ArrayList<>();
+       String query = "SELECT * FROM Workouts WHERE user_id = ?";
+       try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            PreparedStatement statement = connection.prepareStatement(query)) {
+ 
+           statement.setInt(1, userId);
+ 
+           ResultSet resultSet = statement.executeQuery();
            while (resultSet.next()) {
-               User user = new User(
+               workouts.add(new Workout(
+                       resultSet.getInt("id"),
                        resultSet.getInt("user_id"),
-                       resultSet.getString("name"),
-                       resultSet.getString("password"),
-                       resultSet.getInt("regularity_points"),
-                       resultSet.getInt("time_spent")
-               );
-               users.add(user);
+                       resultSet.getString("exercise_name"),
+                       resultSet.getInt("duration"),
+                       resultSet.getDouble("calories_burned")
+               ));
            }
        } catch (SQLException e) {
            e.printStackTrace();
        }
-       return users;
+       return workouts;
    }
-
-   // Update user details
-   @Override
-   public void updateUser(User user) {
-       String query = "UPDATE users SET name = ?, password = ?, regularity_points = ?, time_spent = ? WHERE user_id = ?";
+ 
+   // Delete a workout by ID
+   public boolean deleteWorkout(int workoutId) {
+       String query = "DELETE FROM Workouts WHERE id = ?";
        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
             PreparedStatement statement = connection.prepareStatement(query)) {
-
-           statement.setString(1, user.getName());
-           statement.setString(2, user.getPassword());
-           statement.setInt(3, user.getRegularityPoints());
-           statement.setInt(4, user.getTimeSpent());
-           statement.setInt(5, user.getUserId());
-
-           int rows = statement.executeUpdate();
-           System.out.println(rows + " user(s) updated.");
+ 
+           statement.setInt(1, workoutId);
+           return statement.executeUpdate() > 0;
        } catch (SQLException e) {
            e.printStackTrace();
-       }
-   }
-
-   // Delete a user
-   @Override
-   public void deleteUser(int userId) {
-       String query = "DELETE FROM users WHERE user_id = ?";
-       try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-            PreparedStatement statement = connection.prepareStatement(query)) {
-
-           statement.setInt(1, userId);
-           int rows = statement.executeUpdate();
-           System.out.println(rows + " user(s) deleted.");
-       } catch (SQLException e) {
-           e.printStackTrace();
+           return false;
        }
    }
 }
+ 
+ 
+NUTRITION DAO.java
 
+ 
+package dao;
+ 
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
-
-public class Main {
-   public static void main(String[] args) {
-       UserDao userDao = new UserDaoImpl();
-
-       // Add a user
-       User user1 = new User(0, "John Doe", "password123", 10, 120);
-       userDao.addUser(user1);
-
-       // Retrieve a user by ID
-       User retrievedUser = userDao.getUserById(1);
-       System.out.println("Retrieved User: " + retrievedUser.getName());
-
-       // Retrieve all users
-       List<User> users = userDao.getAllUsers();
-       for (User user : users) {
-           System.out.println(user.getName() + " - " + user.getRegularityPoints() + " points");
+import model.Nutrition;
+ 
+public class NutritionDAO {
+   private static final String DB_URL = "jdbc:mysql://localhost:3306/fitness_app";
+   private static final String DB_USER = "root";
+   private static final String DB_PASSWORD = "your_password";
+ 
+   // Add a new nutrition record
+   public boolean addNutrition(Nutrition nutrition) {
+       String query = "INSERT INTO Nutrition (user_id, food_item, calories, date) VALUES (?, ?, ?, ?)";
+       try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            PreparedStatement statement = connection.prepareStatement(query)) {
+ 
+           statement.setInt(1, nutrition.getUserId());
+           statement.setString(2, nutrition.getFoodItem());
+           statement.setInt(3, nutrition.getCalories());
+           statement.setDate(4, Date.valueOf(nutrition.getDate()));
+ 
+           return statement.executeUpdate() > 0;
+       } catch (SQLException e) {
+           e.printStackTrace();
+           return false;
        }
-
-       // Update a user
-       user1.setRegularityPoints(20);
-       userDao.updateUser(user1);
-
-       // Delete a user
-       userDao.deleteUser(1);
+   }
+ 
+   // Retrieve all nutrition records for a user
+   public List<Nutrition> getNutritionByUserId(int userId) {
+       List<Nutrition> nutritionList = new ArrayList<>();
+       String query = "SELECT * FROM Nutrition WHERE user_id = ?";
+       try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            PreparedStatement statement = connection.prepareStatement(query)) {
+ 
+           statement.setInt(1, userId);
+ 
+           ResultSet resultSet = statement.executeQuery();
+           while (resultSet.next()) {
+               nutritionList.add(new Nutrition(
+                       resultSet.getInt("id"),
+                       resultSet.getInt("user_id"),
+                       resultSet.getString("food_item"),
+                       resultSet.getInt("calories"),
+                       resultSet.getDate("date").toLocalDate()
+               ));
+           }
+       } catch (SQLException e) {
+           e.printStackTrace();
+       }
+       return nutritionList;
    }
 }
+ 
+ 
+ 
+GOALS DAO.java
+
+package dao;
+ 
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import model.Goal;
+ 
+public class GoalDAO {
+   private static final String DB_URL = "jdbc:mysql://localhost:3306/fitness_app";
+   private static final String DB_USER = "root";
+   private static final String DB_PASSWORD = "your_password";
+ 
+   // Add a new goal
+   public boolean addGoal(Goal goal) {
+       String query = "INSERT INTO Goals (user_id, goal_type, target_date, target_value) VALUES (?, ?, ?, ?)";
+       try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            PreparedStatement statement = connection.prepareStatement(query)) {
+ 
+           statement.setInt(1, goal.getUserId());
+           statement.setString(2, goal.getGoalType());
+           statement.setDate(3, Date.valueOf(goal.getTargetDate()));
+           statement.setDouble(4, goal.getTargetValue());
+ 
+           return statement.executeUpdate() > 0;
+       } catch (SQLException e) {
+           e.printStackTrace();
+           return false;
+       }
+   }
+ 
+   // Retrieve all goals for a user
+   public List<Goal> getGoalsByUserId(int userId) {
+       List<Goal> goals = new ArrayList<>();
+       String query = "SELECT * FROM Goals WHERE user_id = ?";
+       try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            PreparedStatement statement = connection.prepareStatement(query)) {
+ 
+           statement.setInt(1, userId);
+ 
+           ResultSet resultSet = statement.executeQuery();
+           while (resultSet.next()) {
+               goals.add(new Goal(
+ 
+ 
+ 
+ 
