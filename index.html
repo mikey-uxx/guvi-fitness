@@ -1,29 +1,321 @@
+Html login form (javascript integration)
+
+ 
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mantra</title>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Login - Fitness App</title>
+   <style>
+       body {
+           font-family: Arial, sans-serif;
+           background-color: #f4f4f9;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           height: 100vh;
+           margin: 0;
+       }
+       .login-container {
+           background-color: #fff;
+           padding: 20px 30px;
+           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+           border-radius: 8px;
+           text-align: center;
+           width: 100%;
+           max-width: 400px;
+       }
+       .login-container h1 {
+           margin-bottom: 20px;
+           color: #333;
+       }
+       .login-container input {
+           width: 90%;
+           padding: 10px;
+           margin: 10px 0;
+           border: 1px solid #ddd;
+           border-radius: 4px;
+       }
+       .login-container input.error {
+           border: 1px solid red;
+       }
+       .login-container .error-message {
+           color: red;
+           font-size: 0.9em;
+           display: none;
+       }
+       .login-container button {
+           width: 90%;
+           padding: 10px;
+           background-color: #28a745;
+           color: #fff;
+           border: none;
+           border-radius: 4px;
+           cursor: pointer;
+       }
+       .login-container button:hover {
+           background-color: #218838;
+       }
+   </style>
 </head>
-<link rel="stylesheet" href="style.css">
 <body>
-    <h1>Mantra Fitness Club</h1>
-    <div class= "left">
-        <img src="img/Users/macbook/Documents/mantra/Mantra2.png" alt=""> 
-        logo
-    </div>
-    <div class="mid">
-        <ul class="navbar">
-            <li><a href= "#">HOME</a></li>
-            <li><a href= "#">FITNESS</a></li>
-            <li><a href= "#">CARE</a></li>
-            <li><a href= "#">MINDFULNESS</a></li>
-            <li><a href= "#">STORE</a></li>
-        </ul> 
-    </div>
-    <div class="right">
-        right
-    </div>
+   <div class="login-container">
+       <h1>Login</h1>
+       <form id="loginForm">
+           <input type="text" id="username" name="username" placeholder="Username or Email" required>
+           <div id="usernameError" class="error-message">Username or Email is required.</div>
+ 
+           <input type="password" id="password" name="password" placeholder="Password" required>
+           <div id="passwordError" class="error-message">Password is required.</div>
+ 
+           <button type="submit">Login</button>
+       </form>
+   </div>
+ 
+   <script src="login.js"></script>
 </body>
 </html>
+ 
+ 
+ 
+ 
+Java script code form validation and interactivity
 
+ 
+ 
+ 
+           // Wait for the DOM to fully load
+document.addEventListener("DOMContentLoaded", function () {
+   const form = document.getElementById("loginForm");
+   const usernameInput = document.getElementById("username");
+   const passwordInput = document.getElementById("password");
+ 
+   const usernameError = document.getElementById("usernameError");
+   const passwordError = document.getElementById("passwordError");
+ 
+   // Function to validate username
+   function validateUsername() {
+       const usernameValue = usernameInput.value.trim();
+       if (!usernameValue) {
+           usernameError.style.display = "block";
+           usernameInput.classList.add("error");
+           return false;
+       } else {
+           usernameError.style.display = "none";
+           usernameInput.classList.remove("error");
+           return true;
+       }
+   }
+ 
+   // Function to validate password
+   function validatePassword() {
+       const passwordValue = passwordInput.value.trim();
+       if (!passwordValue) {
+           passwordError.style.display = "block";
+           passwordInput.classList.add("error");
+           return false;
+       } else {
+           passwordError.style.display = "none";
+           passwordInput.classList.remove("error");
+           return true;
+       }
+   }
+ 
+   // Add event listeners for real-time validation
+   usernameInput.addEventListener("input", validateUsername);
+   passwordInput.addEventListener("input", validatePassword);
+ 
+   // Form submit event listener
+   form.addEventListener("submit", function (event) {
+       // Prevent default form submission
+       event.preventDefault();
+ 
+       // Validate inputs
+       const isUsernameValid = validateUsername();
+       const isPasswordValid = validatePassword();
+ 
+       if (isUsernameValid && isPasswordValid) {
+           alert("Login successful!");
+           // Optionally, send the form data to the server via AJAX
+           // For example, using the Fetch API:
+           /*
+           fetch("login", {
+               method: "POST",
+               headers: {
+                   "Content-Type": "application/json",
+               },
+               body: JSON.stringify({
+                   username: usernameInput.value,
+                   password: passwordInput.value,
+               }),
+           })
+           .then((response) => response.json())
+           .then((data) => {
+               if (data.success) {
+                   alert("Login successful!");
+                   window.location.href = "/dashboard"; // Redirect to another page
+               } else {
+                   alert("Invalid credentials.");
+               }
+           })
+           .catch((error) => {
+               console.error("Error:", error);
+           });
+           */
+       } else {
+           alert("Please fix the errors before submitting.");
+       }
+   });
+});
+ 
+ 
+ 
+ 
+Backend swrvelet for login
+
+ 
+ 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+ 
+@WebServlet("/login")
+public class LoginServlet extends HttpServlet {
+   private static final String DB_URL = "jdbc:mysql://localhost:3306/fitness_app";
+   private static final String DB_USER = "root";
+   private static final String DB_PASSWORD = "your_password";
+ 
+   @Override
+   protected void doPost(HttpServletRequest request, HttpServletResponse response)
+           throws ServletException, IOException {
+       // Set response type to JSON
+       response.setContentType("application/json");
+       PrintWriter out = response.getWriter();
+ 
+       // Read data from the request
+       String username = request.getParameter("username");
+       String password = request.getParameter("password");
+ 
+       try {
+           // Connect to the database
+           Class.forName("com.mysql.cj.jdbc.Driver");
+           Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+ 
+           // Query to verify username/email and password
+           String query = "SELECT * FROM Users WHERE (username = ? OR email = ?) AND password = ?";
+           PreparedStatement statement = connection.prepareStatement(query);
+           statement.setString(1, username);
+           statement.setString(2, username); // Support login via email or username
+           statement.setString(3, password); // Ensure password is encrypted in the database
+ 
+           ResultSet resultSet = statement.executeQuery();
+ 
+           if (resultSet.next()) {
+               // Authentication successful
+               out.print("{\"success\": true, \"message\": \"Login successful\"}");
+           } else {
+               // Authentication failed
+               out.print("{\"success\": false, \"message\": \"Invalid username/email or password\"}");
+           }
+ 
+           // Close resources
+           resultSet.close();
+           statement.close();
+           connection.close();
+       } catch (Exception e) {
+           e.printStackTrace();
+           out.print("{\"success\": false, \"message\": \"An error occurred\"}");
+       }
+   }
+}
+ 
+ 
+ 
+ 
+Javascript integration with backend
+
+ 
+ 
+document.addEventListener("DOMContentLoaded", function () {
+   const form = document.getElementById("loginForm");
+   const usernameInput = document.getElementById("username");
+   const passwordInput = document.getElementById("password");
+ 
+   const usernameError = document.getElementById("usernameError");
+   const passwordError = document.getElementById("passwordError");
+ 
+   function validateUsername() {
+       const usernameValue = usernameInput.value.trim();
+       if (!usernameValue) {
+           usernameError.style.display = "block";
+           usernameInput.classList.add("error");
+           return false;
+       } else {
+           usernameError.style.display = "none";
+           usernameInput.classList.remove("error");
+           return true;
+       }
+   }
+ 
+   function validatePassword() {
+       const passwordValue = passwordInput.value.trim();
+       if (!passwordValue) {
+           passwordError.style.display = "block";
+           passwordInput.classList.add("error");
+           return false;
+       } else {
+           passwordError.style.display = "none";
+           passwordInput.classList.remove("error");
+           return true;
+       }
+   }
+ 
+   usernameInput.addEventListener("input", validateUsername);
+   passwordInput.addEventListener("input", validatePassword);
+ 
+   form.addEventListener("submit", function (event) {
+       event.preventDefault();
+ 
+       const isUsernameValid = validateUsername();
+       const isPasswordValid = validatePassword();
+ 
+       if (isUsernameValid && isPasswordValid) {
+           // Send login data to backend
+           fetch("login", {
+               method: "POST",
+               headers: {
+                   "Content-Type": "application/x-www-form-urlencoded",
+               },
+               body: `username=${encodeURIComponent(usernameInput.value)}&password=${encodeURIComponent(passwordInput.value)}`,
+           })
+               .then((response) => response.json())
+               .then((data) => {
+                   if (data.success) {
+                       alert(data.message);
+                       window.location.href = "/dashboard"; // Redirect to dashboard on success
+                   } else {
+                       alert(data.message); // Show error message from backend
+                   }
+               })
+               .catch((error) => {
+                   console.error("Error:", error);
+                   alert("An error occurred while logging in.");
+               });
+       } else {
+           alert("Please fix the errors before submitting.");
+       }
+   });
+});
+ 
+ 
+ 
