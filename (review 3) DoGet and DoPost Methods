@@ -1,0 +1,254 @@
+DoGet and DoPost Methods
+ 
+ 
+ 
+ 
+ 
+---
+1. UserServlet (Handles User Operations)
+
+ 
+The doPost method processes user registration and login, while the doGet retrieves user details or checks if a username is available.
+ 
+package com.fitness.servlets;
+ 
+import com.fitness.db.DBConnection;
+ 
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+ 
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+ 
+@WebServlet("/user")
+public class UserServlet extends HttpServlet {
+ 
+   @Override
+   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+       String action = request.getParameter("action");
+ 
+       if ("register".equals(action)) {
+           registerUser(request, response);
+       } else if ("login".equals(action)) {
+           loginUser(request, response);
+       }
+   }
+ 
+   @Override
+   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+       String username = request.getParameter("username");
+ 
+       if (username != null) {
+           checkUsernameAvailability(username, response);
+       } else {
+           response.getWriter().write("Invalid request: No username provided");
+       }
+   }
+ 
+   private void registerUser(HttpServletRequest request, HttpServletResponse response) throws IOException {
+       String username = request.getParameter("username");
+       String password = request.getParameter("password");
+       String email = request.getParameter("email");
+ 
+       try (Connection conn = DBConnection.getConnection()) {
+           String query = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
+           PreparedStatement stmt = conn.prepareStatement(query);
+           stmt.setString(1, username);
+           stmt.setString(2, password);
+           stmt.setString(3, email);
+           stmt.executeUpdate();
+           response.getWriter().write("User registered successfully");
+       } catch (Exception e) {
+           response.getWriter().write("Error: " + e.getMessage());
+       }
+   }
+ 
+   private void loginUser(HttpServletRequest request, HttpServletResponse response) throws IOException {
+       String username = request.getParameter("username");
+       String password = request.getParameter("password");
+ 
+       try (Connection conn = DBConnection.getConnection()) {
+           String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+           PreparedStatement stmt = conn.prepareStatement(query);
+           stmt.setString(1, username);
+           stmt.setString(2, password);
+           ResultSet rs = stmt.executeQuery();
+ 
+           if (rs.next()) {
+               response.getWriter().write("Login successful");
+           } else {
+               response.getWriter().write("Invalid credentials");
+           }
+       } catch (Exception e) {
+           response.getWriter().write("Error: " + e.getMessage());
+       }
+   }
+ 
+   private void checkUsernameAvailability(String username, HttpServletResponse response) throws IOException {
+       try (Connection conn = DBConnection.getConnection()) {
+           String query = "SELECT COUNT(*) FROM users WHERE username = ?";
+           PreparedStatement stmt = conn.prepareStatement(query);
+           stmt.setString(1, username);
+           ResultSet rs = stmt.executeQuery();
+ 
+           if (rs.next() && rs.getInt(1) > 0) {
+               response.getWriter().write("Username is taken");
+           } else {
+               response.getWriter().write("Username is available");
+           }
+       } catch (Exception e) {
+           response.getWriter().write("Error: " + e.getMessage());
+       }
+   }
+}
+ 
+ 
+---
+ 
+2. WorkoutServlet (Handles Workout Plan Operations)
+
+ 
+The doPost method allows adding new workout plans, while doGet retrieves all available plans.
+ 
+package com.fitness.servlets;
+ 
+import com.fitness.db.DBConnection;
+ 
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+ 
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+ 
+@WebServlet("/workouts")
+public class WorkoutServlet extends HttpServlet {
+ 
+   @Override
+   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+       String title = request.getParameter("title");
+       String description = request.getParameter("description");
+ 
+       try (Connection conn = DBConnection.getConnection()) {
+           String query = "INSERT INTO workout_plans (title, description) VALUES (?, ?)";
+           PreparedStatement stmt = conn.prepareStatement(query);
+           stmt.setString(1, title);
+           stmt.setString(2, description);
+           stmt.executeUpdate();
+           response.getWriter().write("Workout plan added successfully");
+       } catch (Exception e) {
+           response.getWriter().write("Error: " + e.getMessage());
+       }
+   }
+ 
+   @Override
+   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+       try (Connection conn = DBConnection.getConnection()) {
+           String query = "SELECT * FROM workout_plans";
+           PreparedStatement stmt = conn.prepareStatement(query);
+           ResultSet rs = stmt.executeQuery();
+ 
+           List<String> workouts = new ArrayList<>();
+           while (rs.next()) {
+               String workout = rs.getString("title") + ": " + rs.getString("description");
+               workouts.add(workout);
+           }
+ 
+           response.getWriter().write(String.join("<br>", workouts));
+       } catch (Exception e) {
+           response.getWriter().write("Error: " + e.getMessage());
+       }
+   }
+}
+ 
+ 
+---
+ 
+ 
+UserServlet
+ 
+1. doPost:
+ 
+Handles user registration and login.
+ 
+Parameters: action, username, password, email.
+ 
+Inserts data into the users table or verifies login credentials.
+ 
+ 
+ 
+2. doGet:
+ 
+Checks username availability.
+ 
+Parameter: username.
+ 
+ 
+ 
+ 
+WorkoutServlet
+ 
+1. doPost:
+ 
+Adds a new workout plan.
+ 
+Parameters: title, description.
+ 
+Inserts data into the workout_plans table.
+ 
+ 
+ 
+2. doGet:
+ 
+Retrieves a list of all workout plans.
+ 
+Returns data as plain HTML text for frontend display.
+ 
+ 
+ 
+ 
+ 
+---
+ 
+Usage:
+ 
+1. User Registration (doPost)
+ 
+Endpoint: /user
+ 
+Parameters:
+ 
+action=register, username=test, password=1234, email=test@example.com.
+ 
+ 
+ 
+2. Check Username Availability (doGet)
+ 
+Endpoint: /user?username=test
+ 
+ 
+3. Add Workout Plan (doPost)
+ 
+Endpoint: /workouts
+ 
+Parameters:
+ 
+title=Cardio, description=30-minute high-intensity workout.
+ 
+ 
+ 
+4. Get Workout Plans (doGet)
+Endpoint workouts
+ 
+ 
