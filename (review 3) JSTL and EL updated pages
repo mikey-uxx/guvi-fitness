@@ -1,0 +1,239 @@
+JSTL and EL updated pages ( jsp)
+ 
+ 
+We also have the updated versions of all the JSP pages, refactored to use JSTL and Expression Language (EL) to simplify the code and improve maintainability.
+ 
+ 
+---
+ 
+1. index.jsp (Home Page)
+ 
+This is the homepage that links to the other JSP pages. No dynamic data is needed here, so no JSTL/EL is required.
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <title>Fitness Website</title>
+</head>
+<body>
+   <h1>Welcome to the Fitness Hub</h1>
+   <nav>
+       <a href="register.jsp">Register</a>
+       <a href="login.jsp">Login</a>
+       <a href="users">View Users</a>
+       <a href="workouts.jsp">Workout Plans</a>
+   </nav>
+</body>
+</html>
+ 
+ 
+---
+ 
+2. register.jsp (User Registration Form)
+ 
+This page includes server-side validation messages using EL.
+ 
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <title>Register</title>
+</head>
+<body>
+   <h1>Register</h1>
+   <!-- Display success or error messages -->
+   <c:if test="${not empty message}">
+       <p style="color: green;">${message}</p>
+   </c:if>
+   <c:if test="${not empty error}">
+       <p style="color: red;">${error}</p>
+   </c:if>
+   <form action="user" method="post">
+       <input type="hidden" name="action" value="register">
+       <label for="username">Username:</label>
+       <input type="text" id="username" name="username" required><br>
+       <label for="password">Password:</label>
+       <input type="password" id="password" name="password" required><br>
+       <label for="email">Email:</label>
+       <input type="email" id="email" name="email" required><br>
+       <button type="submit">Register</button>
+   </form>
+</body>
+</html>
+ 
+ 
+---
+ 
+3. login.jsp (User Login Form)
+ 
+This page also uses EL to display server-side validation messages.
+ 
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <title>Login</title>
+</head>
+<body>
+   <h1>Login</h1>
+   <!-- Display error messages -->
+   <c:if test="${not empty error}">
+       <p style="color: red;">${error}</p>
+   </c:if>
+   <form action="user" method="post">
+       <input type="hidden" name="action" value="login">
+       <label for="username">Username:</label>
+       <input type="text" id="username" name="username" required><br>
+       <label for="password">Password:</label>
+       <input type="password" id="password" name="password" required><br>
+       <button type="submit">Login</button>
+   </form>
+</body>
+</html>
+ 
+ 
+---
+ 
+4. users.jsp (Display User Data)
+ 
+This page uses JSTL to iterate over the user list and conditionally display a message if no users are available.
+ 
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <title>User List</title>
+   <style>
+       table {
+           width: 60%;
+           border-collapse: collapse;
+           margin: 20px auto;
+       }
+       th, td {
+           border: 1px solid #ddd;
+           padding: 8px;
+           text-align: center;
+       }
+       th {
+           background-color: #f4f4f4;
+       }
+   </style>
+</head>
+<body>
+   <h1 style="text-align:center;">User List</h1>
+   <table>
+       <thead>
+           <tr>
+               <th>ID</th>
+               <th>Username</th>
+               <th>Email</th>
+               <th>Role</th>
+           </tr>
+       </thead>
+       <tbody>
+           <!-- Use JSTL's c:forEach to iterate over the user list -->
+           <c:forEach var="user" items="${userList}">
+               <tr>
+                   <td>${user.id}</td>
+                   <td>${user.username}</td>
+                   <td>${user.email}</td>
+                   <td>${user.role}</td>
+               </tr>
+           </c:forEach>
+ 
+           <!-- Display a message if the user list is empty -->
+           <c:if test="${empty userList}">
+               <tr>
+                   <td colspan="4">No users found</td>
+               </tr>
+           </c:if>
+       </tbody>
+   </table>
+</body>
+</html>
+ 
+ 
+---
+ 
+5. workouts.jsp (Workout Plans)
+ 
+This page uses JSTL and EL to display a list of workout plans dynamically.
+ 
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <title>Workout Plans</title>
+</head>
+<body>
+   <h1>Workout Plans</h1>
+   <!-- Add Workout Form -->
+   <form action="workouts" method="post">
+       <label for="title">Workout Title:</label>
+       <input type="text" id="title" name="title" required><br>
+       <label for="description">Description:</label>
+       <textarea id="description" name="description" required></textarea><br>
+       <button type="submit">Add Workout</button>
+   </form>
+ 
+   <!-- Display a list of workout plans -->
+   <h2>Available Workouts:</h2>
+   <div>
+       <c:forEach var="workout" items="${workoutList}">
+           <p><strong>${workout.title}</strong>: ${workout.description}</p>
+       </c:forEach>
+ 
+       <!-- Display a message if the workout list is empty -->
+       <c:if test="${empty workoutList}">
+           <p>No workout plans available</p>
+       </c:if>
+   </div>
+</body>
+</html>
+ 
+ 
+---
+ 
+Dependencies
+ 
+Ensure that JSTL is configured in your project. Add the dependency in pom.xml:
+ 
+<dependency>
+   <groupId>javax.servlet</groupId>
+   <artifactId>jstl</artifactId>
+   <version>1.2</version>
+</dependency>
+ 
+Or, if not using Maven, download the JSTL jar and place it in WEB-INF/lib.
+ 
+ 
+---
+ 
+How It Works
+ 
+1. Dynamic Rendering:
+ 
+EL (${variable}) is used to access request attributes like userList or workoutList set by the servlets.
+ 
+JSTL (<c:forEach>, <c:if>) is used for looping and conditional checks.
+ 
+ 
+ 
+2. Form Handling:
+ 
+Forms send data to servlets via POST (action="user" for user registration or login, action="workouts" for workout plans).
+ 
+ 
+ 
+3. Server-Side Validation:
+ 
+Messages like ${message} or ${error} are displayed on the JSP pages for feedback.
+ 
+ 
+ 
+ 
+ 
+---
+ 
+ 
+
