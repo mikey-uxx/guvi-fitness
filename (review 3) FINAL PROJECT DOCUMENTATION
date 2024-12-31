@@ -1,0 +1,375 @@
+FINAL PROJECT DOCUMENTATION
+ 
+ 
+ 
+ 
+.
+ 
+ 
+---
+ 
+Project: Fitness Website
+
+Overview
+
+ 
+The Fitness Website is a dynamic web application that allows users to:
+ 
+1. Register an account.
+ 
+ 
+2. Log in to the application.
+ 
+ 
+3. View and manage workout plans.
+ 
+ 
+4. View the list of all registered users (admin functionality).
+ 
+ 
+ 
+The project is built using Java Servlets, JSP, JSTL, and MySQL as the database. It adheres to a layered architecture with DAO, Service, and Servlet layers to ensure modularity, maintainability, and scalability.
+ 
+ 
+---
+ 
+Technologies Used
+
+ 
+1. Backend:
+ 
+Java (Servlets, DAO, and Service Layer)
+ 
+ 
+ 
+2. Frontend:
+ 
+JSP (Java Server Pages), JSTL (Java Standard Tag Library), HTML, and CSS
+ 
+ 
+ 
+3. Database:
+ 
+MySQL for persistent data storage
+ 
+ 
+ 
+4. Testing:
+ 
+JUnit for unit testing
+ 
+Mockito for mocking dependencies
+ 
+ 
+ 
+5. Tools:
+ 
+Apache Tomcat 9 (Web Server)
+ 
+Maven (Dependency Management)
+ 
+H2 Database (In-memory testing)
+ 
+ 
+ 
+ 
+ 
+---
+ 
+Features
+
+ 
+User Features
+ 
+1. User Registration:
+ 
+Users can register by providing a username, password, and email.
+ 
+ 
+ 
+2. User Login:
+ 
+Registered users can log in to the system.
+ 
+ 
+ 
+3. Workout Plans:
+ 
+Users can view, add, and manage workout plans.
+ 
+ 
+ 
+ 
+Admin Features
+ 
+1. View All Users:
+ 
+Admins can view a list of all registered users.
+ 
+ 
+ 
+2. Data Validation:
+ 
+Input validation is performed at both client and server sides.
+ 
+ 
+ 
+ 
+ 
+---
+ 
+Architecture
+
+ 
+1. Three-Layer Architecture
+ 
+1. Presentation Layer:
+ 
+JSP files (index.jsp, register.jsp, login.jsp, users.jsp, workouts.jsp) handle the user interface.
+ 
+JSTL and EL are used for dynamic data rendering.
+ 
+ 
+ 
+2. Business Logic Layer:
+ 
+Service classes (UserService) contain core business logic.
+ 
+ 
+ 
+3. Data Access Layer:
+ 
+DAO classes (UserDAO, WorkoutDAO) interact with the database.
+ 
+ 
+ 
+ 
+2. Database Design
+ 
+The application uses the following tables in the MySQL database:
+ 
+a. users Table | Column    | Type        | Description                     | |-----------|-------------|---------------------------------| | id        | INT         | Primary key (Auto-incremented) | | username  | VARCHAR(50) | Unique username                | | password  | VARCHAR(255)| Password (hashed for security) | | email     | VARCHAR(100)| User email                     | | role      | ENUM        | User role (user or admin)  |
+ 
+b. workout_plans Table | Column      | Type        | Description                    | |-------------|-------------|--------------------------------| | id          | INT         | Primary key (Auto-incremented)| | title       | VARCHAR(100)| Title of the workout plan     | | description | TEXT        | Description of the workout    |
+ 
+ 
+---
+ 
+File Structure
+
+ 
+fitness-website/
+├── src/
+│   ├── main/
+│   │   ├── java/com/fitness/
+│   │   │   ├── models/              # Data models
+│   │   │   │   ├── User.java
+│   │   │   │   ├── WorkoutPlan.java
+│   │   │   ├── dao/                 # Data Access Objects
+│   │   │   │   ├── UserDAO.java
+│   │   │   │   ├── WorkoutDAO.java
+│   │   │   ├── service/             # Business Logic
+│   │   │   │   ├── UserService.java
+│   │   │   │   ├── WorkoutService.java
+│   │   │   ├── servlets/            # Controllers
+│   │   │   │   ├── UserServlet.java
+│   │   │   │   ├── WorkoutServlet.java
+│   │   ├── resources/
+│   │   │   ├── application.properties # DB configurations
+│   │   ├── webapp/
+│   │   │   ├── index.jsp
+│   │   │   ├── register.jsp
+│   │   │   ├── login.jsp
+│   │   │   ├── users.jsp
+│   │   │   ├── workouts.jsp
+│   │   │   ├── WEB-INF/
+│   │   │   │   └── web.xml
+├── test/                           # Unit Tests
+│   ├── com/fitness/dao/            # DAO Tests
+│   │   ├── UserDAOTest.java
+│   │   ├── WorkoutDAOTest.java
+│   ├── com/fitness/service/        # Service Tests
+│   │   ├── UserServiceTest.java
+│   │   ├── WorkoutServiceTest.java
+ 
+ 
+---
+Detailed Module Descriptions
+
+1. Models
+ 
+User.java
+ 
+public class User {
+   private int id;
+   private String username;
+   private String password;
+   private String email;
+   private String role;
+ 
+   public User(int id, String username, String password, String email, String role) {
+       this.id = id;
+       this.username = username;
+       this.password = password;
+       this.email = email;
+       this.role = role;
+   }
+ 
+   // Getters and setters
+}
+ 
+WorkoutPlan.java
+ 
+public class WorkoutPlan {
+   private int id;
+   private String title;
+   private String description;
+ 
+   public WorkoutPlan(int id, String title, String description) {
+       this.id = id;
+       this.title = title;
+       this.description = description;
+   }
+ 
+   // Getters and setters
+}
+ 
+ 
+---
+ 
+2. DAO Layer
+
+ 
+UserDAO.java
+ 
+Manages CRUD operations for the users table.
+ 
+WorkoutDAO.java
+ 
+Handles interactions with the workout_plans table.
+ 
+ 
+---
+ 
+3. Service Layer
+
+ 
+UserService.java
+ 
+Contains business logic for user operations like registration validation.
+ 
+WorkoutService.java
+ 
+Handles workout-specific logic.
+ 
+ 
+---
+ 
+4. Servlet Layer
+
+UserServlet.java
+ 
+Handles requests for user registration, login, and user listing.
+ 
+WorkoutServlet.java
+ 
+Handles requests to view or add workout plans.
+ 
+ 
+---
+ 
+5. JSP Pages
+
+ 
+index.jsp: Home page with navigation links.
+ 
+register.jsp: User registration form.
+ 
+login.jsp: User login form.
+ 
+users.jsp: Displays a table of all users.
+ 
+workouts.jsp: Allows users to view or add workout plans.
+ 
+ 
+ 
+---
+ 
+Testing
+
+ 
+Unit Tests
+ 
+1. DAO Tests:
+ 
+UserDAOTest: Tests database CRUD operations for users.
+ 
+WorkoutDAOTest: Tests CRUD operations for workout plans.
+ 
+ 
+ 
+2. Service Tests:
+ 
+UserServiceTest: Validates business logic for user operations.
+ 
+WorkoutServiceTest: Validates logic for workout operations.
+ 
+ 
+ 
+ 
+Testing Tools
+ 
+JUnit: Framework for unit testing.
+ 
+Mockito: Mocking framework for testing service-layer dependencies.
+ 
+ 
+ 
+---
+ 
+Setup and Deployment
+
+ 
+1. MySQL Database Setup
+ 
+1. Create the database:
+ 
+CREATE DATABASE fitness_website;
+ 
+ 
+2. Create the users and workout_plans tables (see schema above).
+ 
+ 
+ 
+2. Maven Build
+ 
+Run mvn clean install to build the project and package it as a WAR file.
+ 
+ 
+3. Deploy on Tomcat
+ 
+1. Copy the WAR file to the webapps folder in Tomcat.
+ 
+ 
+2. Start the server and access the application at:
+ 
+http://localhost:8080/fitness-website
+ 
+ 
+ 
+ 
+---
+ 
+ 
+ 
+ 
+ 
+ 
+---
+ 
+Conclusion
+
+ 
+This project demonstrates the use of Java Servlets, JSP, MySQL, and JSTL in creating a dynamic, modular, and extensible web application. It provides a foundation for building scalable and feature-rich applications.
+ 
+ 
