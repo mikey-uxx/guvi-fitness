@@ -1,0 +1,270 @@
+JSP pages for displaying user data
+ 
+This is the simple version of our code, we also have an updated version with jstl and el implementations.
+ 
+ 
+ 
+ 
+---
+ 
+Steps to Display User Data
+ 
+1. Create a UserServlet to fetch user data from the database.
+ 
+ 
+2. Use a JSP page to display the fetched user data.
+ 
+ 
+3. Forward data from the servlet to the JSP page using request attributes.
+ 
+ 
+ 
+ 
+---
+ 
+Implementation
+ 
+1.MYSQL Query
+
+ 
+Make sure the users table in your database contains data:
+ 
+SELECT * FROM users;
+ 
+Sample Data: | id  | username | password | email               | role  | | ----|----------|----------|---------------------|-------| | 1   | john_doe | password | john@example.com    | user  | | 2   | admin    | admin123 | admin@example.com   | admin |
+ 
+ 
+---
+ 
+2. UserServlet (Java Backend)
+
+ 
+Modify UserServlet to fetch user data and forward it to the JSP page.
+ 
+package com.fitness.servlets;
+ 
+import com.fitness.db.DBConnection;
+ 
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+ 
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+ 
+// Define the servlet to handle user data display
+@WebServlet("/users")
+public class UserServlet extends HttpServlet {
+   @Override
+   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+       try (Connection conn = DBConnection.getConnection()) {
+           String query = "SELECT * FROM users";
+           PreparedStatement stmt = conn.prepareStatement(query);
+           ResultSet rs = stmt.executeQuery();
+ 
+           // Store user data in a list of User objects
+           List<User> users = new ArrayList<>();
+           while (rs.next()) {
+               User user = new User(
+                   rs.getInt("id"),
+                   rs.getString("username"),
+                   rs.getString("email"),
+                   rs.getString("role")
+               );
+               users.add(user);
+           }
+ 
+           // Pass the user list to the JSP page
+           request.setAttribute("userList", users);
+           request.getRequestDispatcher("users.jsp").forward(request, response);
+       } catch (Exception e) {
+           request.setAttribute("error", "Error: " + e.getMessage());
+           request.getRequestDispatcher("error.jsp").forward(request, response);
+       }
+   }
+}
+ 
+// User model class
+class User {
+   private int id;
+   private String username;
+   private String email;
+   private String role;
+ 
+   public User(int id, String username, String email, String role) {
+       this.id = id;
+       this.username = username;
+       this.email = email;
+       this.role = role;
+   }
+ 
+   public int getId() { return id; }
+   public String getUsername() { return username; }
+   public String getEmail() { return email; }
+   public String getRole() { return role; }
+}
+ 
+ 
+---
+ 
+3. JSP Page (users.jsp)
+
+ 
+This page dynamically renders user data passed from the servlet.
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <title>User List</title>
+   <style>
+       table {
+           width: 60%;
+           border-collapse: collapse;
+           margin: 20px auto;
+       }
+       th, td {
+           border: 1px solid #ddd;
+           padding: 8px;
+           text-align: center;
+       }
+       th {
+           background-color: #f4f4f4;
+       }
+   </style>
+</head>
+<body>
+   <h1 style="text-align:center;">User List</h1>
+   <table>
+       <thead>
+           <tr>
+               <th>ID</th>
+               <th>Username</th>
+               <th>Email</th>
+               <th>Role</th>
+           </tr>
+       </thead>
+       <tbody>
+           <%
+               // Retrieve user list from request attribute
+               List<User> users = (List<User>) request.getAttribute("userList");
+               if (users != null) {
+                   for (User user : users) {
+           %>
+           <tr>
+               <td><%= user.getId() %></td>
+               <td><%= user.getUsername() %></td>
+               <td><%= user.getEmail() %></td>
+               <td><%= user.getRole() %></td>
+           </tr>
+           <%
+                   }
+               } else {
+           %>
+           <tr>
+               <td colspan="4">No users found</td>
+           </tr>
+           <%
+               }
+           %>
+       </tbody>
+   </table>
+</body>
+</html>
+ 
+ 
+---
+ 
+4. Error Page (error.jsp)
+
+ 
+To handle errors gracefully, use an error page.
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <title>Error</title>
+</head>
+<body>
+   <h1>An error occurred</h1>
+   <p><%= request.getAttribute("error") %></p>
+</body>
+</html>
+ 
+ 
+---
+ 
+Web.xml Configuration
+
+ 
+Ensure the web.xml file includes the servlet mapping.
+ 
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" version="3.0">
+   <servlet>
+       <servlet-name>UserServlet</servlet-name>
+       <servlet-class>com.fitness.servlets.UserServlet</servlet-class>
+   </servlet>
+   <servlet-mapping>
+       <servlet-name>UserServlet</servlet-name>
+       <url-pattern>/users</url-pattern>
+   </servlet-mapping>
+</web-app>
+ 
+ 
+---
+ 
+HOW IT FUNCTIONS:
+ 
+1. Data Retrieval:
+ 
+The servlet (UserServlet) retrieves all user data from the users table in the database.
+ 
+This data is stored in a List<User> and passed to the JSP using the request.setAttribute() method.
+ 
+ 
+ 
+2. Dynamic Rendering:
+ 
+The JSP (users.jsp) accesses the user list via the request object.
+ 
+It uses Java embedded in JSP tags (<% ... %>) to iterate over the list and generate the HTML table.
+ 
+ 
+ 
+3. Error Handling:
+ 
+If an error occurs (e.g., database connection failure), the servlet forwards the request to error.jsp.
+ 
+ 
+ 
+ 
+ 
+---
+ 
+Run the Application
+ 
+1. Access the User List:
+ 
+Start your servlet container (e.g., Tomcat).
+ 
+Open your browser and navigate to http://localhost:8080/fitness-website/users.
+ 
+ 
+ 
+2. Output:
+ 
+A table displaying all users in the users database table.
+ 
+ 
+ 
+ 
+ 
+---
+ 
+ 
+ 
