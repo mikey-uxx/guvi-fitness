@@ -1,0 +1,259 @@
+Integrating JSP with servlets
+ 
+ 
+ 
+ 
+ 
+1. Project Structure:
+ 
+fitness-website/
+├── src/
+│   ├── main/
+│   │   ├── java/com/fitness/
+│   │   │   ├── servlets/
+│   │   │   │   ├── UserServlet.java
+│   │   │   │   ├── WorkoutServlet.java
+│   │   │   ├── db/DBConnection.java
+│   │   ├── webapp/
+│   │   │   ├── index.jsp
+│   │   │   ├── register.jsp
+│   │   │   ├── login.jsp
+│   │   │   ├── workouts.jsp
+│   │   │   ├── WEB-INF/
+│   │   │   │   └── web.xml
+ 
+ 
+2. Web Configuration (web.xml): Update the web.xml to define servlet mappings and JSP file paths.
+ 
+ 
+ 
+ 
+---
+ 
+Code Implementation
+ 
+1. index.jsp (Home Page)
+
+ 
+The homepage serves as an entry point for the website, linking to other JSP pages like login and registration.
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <title>Fitness Website</title>
+</head>
+<body>
+   <h1>Welcome to the Fitness Hub</h1>
+   <nav>
+       <a href="register.jsp">Register</a>
+       <a href="login.jsp">Login</a>
+       <a href="workouts.jsp">Workout Plans</a>
+   </nav>
+</body>
+</html>
+ 
+ 
+---
+ 
+2. register.jsp (Registration Form)
+
+ 
+A JSP page for user registration that sends data to the UserServlet.
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <title>Register</title>
+</head>
+<body>
+   <h1>Register</h1>
+   <form action="user" method="post">
+       <input type="hidden" name="action" value="register">
+       <label for="username">Username:</label>
+       <input type="text" id="username" name="username" required><br>
+       <label for="password">Password:</label>
+       <input type="password" id="password" name="password" required><br>
+       <label for="email">Email:</label>
+       <input type="email" id="email" name="email" required><br>
+       <button type="submit">Register</button>
+   </form>
+</body>
+</html>
+ 
+ 
+---
+ 
+3. login.jsp (Login Form)
+
+ 
+A JSP page for user login that sends data to the UserServlet.
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <title>Login</title>
+</head>
+<body>
+   <h1>Login</h1>
+   <form action="user" method="post">
+       <input type="hidden" name="action" value="login">
+       <label for="username">Username:</label>
+       <input type="text" id="username" name="username" required><br>
+       <label for="password">Password:</label>
+       <input type="password" id="password" name="password" required><br>
+       <button type="submit">Login</button>
+   </form>
+</body>
+</html>
+ 
+ 
+---
+ 
+4. workouts.jsp (List of Workout Plans)
+
+ 
+A JSP page to fetch and display workout plans from the WorkoutServlet.
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <title>Workout Plans</title>
+</head>
+<body>
+   <h1>Workout Plans</h1>
+   <form action="workouts" method="post">
+       <label for="title">Workout Title:</label>
+       <input type="text" id="title" name="title" required><br>
+       <label for="description">Description:</label>
+       <textarea id="description" name="description" required></textarea><br>
+       <button type="submit">Add Workout</button>
+   </form>
+   <h2>Available Workouts:</h2>
+   <div>
+       <%
+           // Fetch workout plans from the servlet
+           List<String> workouts = (List<String>) request.getAttribute("workoutList");
+           if (workouts != null) {
+               for (String workout : workouts) {
+                   out.println("<p>" + workout + "</p>");
+               }
+           } else {
+               out.println("<p>No workout plans available</p>");
+           }
+       %>
+   </div>
+</body>
+</html>
+ 
+ 
+---
+ 
+5. UserServlet.java
+
+ 
+Modify the doGet and doPost methods in UserServlet to redirect to appropriate JSP pages.
+ 
+@Override
+protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+   String action = request.getParameter("action");
+ 
+   if ("register".equals(action)) {
+       registerUser(request, response);
+   } else if ("login".equals(action)) {
+       loginUser(request, response);
+   }
+}
+ 
+private void registerUser(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+   String username = request.getParameter("username");
+   String password = request.getParameter("password");
+   String email = request.getParameter("email");
+ 
+   try (Connection conn = DBConnection.getConnection()) {
+       String query = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
+       PreparedStatement stmt = conn.prepareStatement(query);
+       stmt.setString(1, username);
+       stmt.setString(2, password);
+       stmt.setString(3, email);
+       stmt.executeUpdate();
+       request.setAttribute("message", "User registered successfully!");
+       request.getRequestDispatcher("register.jsp").forward(request, response);
+   } catch (Exception e) {
+       request.setAttribute("error", "Error: " + e.getMessage());
+       request.getRequestDispatcher("register.jsp").forward(request, response);
+   }
+}
+ 
+private void loginUser(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+   String username = request.getParameter("username");
+   String password = request.getParameter("password");
+ 
+   try (Connection conn = DBConnection.getConnection()) {
+       String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+       PreparedStatement stmt = conn.prepareStatement(query);
+       stmt.setString(1, username);
+       stmt.setString(2, password);
+       ResultSet rs = stmt.executeQuery();
+ 
+       if (rs.next()) {
+           request.setAttribute("message", "Login successful");
+           request.getRequestDispatcher("index.jsp").forward(request, response);
+       } else {
+           request.setAttribute("error", "Invalid credentials");
+           request.getRequestDispatcher("login.jsp").forward(request, response);
+       }
+   } catch (Exception e) {
+       request.setAttribute("error", "Error: " + e.getMessage());
+       request.getRequestDispatcher("login.jsp").forward(request, response);
+   }
+}
+ 
+ 
+---
+ 
+6. WorkoutServlet.java
+
+ 
+Modify the doGet method in WorkoutServlet to pass workout plans to the JSP page.
+ 
+@Override
+protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+   try (Connection conn = DBConnection.getConnection()) {
+       String query = "SELECT * FROM workout_plans";
+       PreparedStatement stmt = conn.prepareStatement(query);
+       ResultSet rs = stmt.executeQuery();
+ 
+       List<String> workouts = new ArrayList<>();
+       while (rs.next()) {
+           workouts.add(rs.getString("title") + ": " + rs.getString("description"));
+       }
+ 
+       request.setAttribute("workoutList", workouts);
+       request.getRequestDispatcher("workouts.jsp").forward(request, response);
+   } catch (Exception e) {
+       request.setAttribute("error", "Error: " + e.getMessage());
+       request.getRequestDispatcher("workouts.jsp").forward(request, response);
+   }
+}
+ 
+ 
+---
+ 
+Run the Project
+ 
+1. Deploy the WAR File:
+ 
+Package the project into a WAR file and deploy it on a servlet container like Apache Tomcat.
+ 
+ 
+ 
+2. Access the Pages:
+ 
+Open the homepage (http://localhost:8080/fitness-website/index.jsp) and navigate to other pages like register.jsp or login.jsp.
+ 
+ 
+ 
+ 
+ 
+---
+ 
