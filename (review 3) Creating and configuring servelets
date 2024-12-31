@@ -1,0 +1,254 @@
+Creating and configuring servelets
+ 
+To configure servlets for your fitness website using Java (instead of Spring Boot), here's a detailed guide. Servlets can be used to handle user requests and dynamically generate responses for the frontend.
+
+---
+
+Step-by-Step Plan for Servlets
+
+1. Project Structure:
+
+fitness-website/
+├── src/
+│   ├── main/
+│   │   ├── java/com/fitness/
+│   │   │   ├── servlets/
+│   │   │   │   ├── UserServlet.java
+│   │   │   │   ├── WorkoutServlet.java
+│   │   │   ├── db/DBConnection.java
+│   │   ├── webapp/
+│   │   │   ├── index.html
+│   │   │   ├── register.html
+│   │   │   ├── workouts.html
+│   │   │   ├── WEB-INF/
+│   │   │   │   └── web.xml
+ 
+UserServlet.java: Handles user-related requests like registration and login.
+ 
+WorkoutServlet.java: Manages workout plans.
+ 
+DBConnection.java: Creates a database connection pool.
+ 
+web.xml: Configures servlet mappings.
+---
+
+Code Implementation
+
+1. Database Configuration (DBConnection.java)
+ 
+package com.fitness.db;
+ 
+import java.sql.Connection;
+import java.sql.DriverManager;
+ 
+public class DBConnection {
+   private static final String URL = "jdbc:mysql://localhost:3306/fitness_website";
+   private static final String USER = "root";
+   private static final String PASSWORD = "yourpassword";
+ 
+   public static Connection getConnection() throws Exception {
+       Class.forName("com.mysql.cj.jdbc.Driver");
+       return DriverManager.getConnection(URL, USER, PASSWORD);
+   }
+}
+---
+
+2. User Servlet (UserServlet.java)
+
+package com.fitness.servlets;
+ 
+import com.fitness.db.DBConnection;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+ 
+@WebServlet("/user")
+public class UserServlet extends HttpServlet {
+   @Override
+   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+       String action = request.getParameter("action");
+ 
+       if ("register".equals(action)) {
+           registerUser(request, response);
+       } else if ("login".equals(action)) {
+           loginUser(request, response);
+       }
+   }
+ 
+   private void registerUser(HttpServletRequest request, HttpServletResponse response) throws IOException {
+       String username = request.getParameter("username");
+       String password = request.getParameter("password");
+       String email = request.getParameter("email");
+ 
+       try (Connection conn = DBConnection.getConnection()) {
+           String query = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
+           PreparedStatement stmt = conn.prepareStatement(query);
+           stmt.setString(1, username);
+           stmt.setString(2, password);
+           stmt.setString(3, email);
+           stmt.executeUpdate();
+           response.getWriter().write("User registered successfully");
+       } catch (Exception e) {
+           response.getWriter().write("Error: " + e.getMessage());
+       }
+   }
+ 
+   private void loginUser(HttpServletRequest request, HttpServletResponse response) throws IOException {
+       String username = request.getParameter("username");
+       String password = request.getParameter("password");
+ 
+       try (Connection conn = DBConnection.getConnection()) {
+           String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+           PreparedStatement stmt = conn.prepareStatement(query);
+           stmt.setString(1, username);
+           stmt.setString(2, password);
+           ResultSet rs = stmt.executeQuery();
+ 
+           if (rs.next()) {
+               response.getWriter().write("Login successful");
+           } else {
+               response.getWriter().write("Invalid credentials");
+           }
+       } catch (Exception e) {
+           response.getWriter().write("Error: " + e.getMessage());
+       }
+   }
+}
+---
+
+3. Workout Servlet (WorkoutServlet.java)
+
+ 
+package com.fitness.servlets;
+ 
+import com.fitness.db.DBConnection;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+ 
+@WebServlet("/workouts")
+public class WorkoutServlet extends HttpServlet {
+   @Override
+   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+       try (Connection conn = DBConnection.getConnection()) {
+           String query = "SELECT * FROM workout_plans";
+           PreparedStatement stmt = conn.prepareStatement(query);
+           ResultSet rs = stmt.executeQuery();
+ 
+           List<String> workouts = new ArrayList<>();
+           while (rs.next()) {
+               workouts.add(rs.getString("title") + ": " + rs.getString("description"));
+           }
+ 
+           response.getWriter().write(String.join("<br>", workouts));
+       } catch (Exception e) {
+           response.getWriter().write("Error: " + e.getMessage());
+       }
+   }
+ 
+   @Override
+   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+       String title = request.getParameter("title");
+       String description = request.getParameter("description");
+ 
+       try (Connection conn = DBConnection.getConnection()) {
+           String query = "INSERT INTO workout_plans (title, description) VALUES (?, ?)";
+           PreparedStatement stmt = conn.prepareStatement(query);
+           stmt.setString(1, title);
+           stmt.setString(2, description);
+           stmt.executeUpdate();
+           response.getWriter().write("Workout plan added successfully");
+       } catch (Exception e) {
+           response.getWriter().write("Error: " + e.getMessage());
+       }
+   }
+}
+---
+
+4. Servlet Configuration (web.xml)
+
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" version="3.0">
+   <servlet>
+       <servlet-name>UserServlet</servlet-name>
+       <servlet-class>com.fitness.servlets.UserServlet</servlet-class>
+   </servlet>
+   <servlet-mapping>
+       <servlet-name>UserServlet</servlet-name>
+       <url-pattern>/user</url-pattern>
+   </servlet-mapping>
+ 
+   <servlet>
+       <servlet-name>WorkoutServlet</servlet-name>
+       <servlet-class>com.fitness.servlets.WorkoutServlet</servlet-class>
+   </servlet>
+   <servlet-mapping>
+       <servlet-name>WorkoutServlet</servlet-name>
+       <url-pattern>/workouts</url-pattern>
+   </servlet-mapping>
+</web-app>
+---
+
+Frontend Integration Example
+
+Registration Page (register.html)
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <title>Register</title>
+</head>
+<body>
+   <form action="/user" method="post">
+       <input type="hidden" name="action" value="register">
+       <input type="text" name="username" placeholder="Username" required>
+       <input type="password" name="password" placeholder="Password" required>
+       <input type="email" name="email" placeholder="Email" required>
+       <button type="submit">Register</button>
+   </form>
+</body>
+</html>
+ 
+Workouts Page (workouts.html)
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <title>Workouts</title>
+</head>
+<body>
+   <form action="/workouts" method="post">
+       <input type="text" name="title" placeholder="Workout Title" required>
+       <textarea name="description" placeholder="Description" required></textarea>
+       <button type="submit">Add Workout</button>
+   </form>
+   <div id="workout-list"></div>
+   <script>
+       fetch('/workouts')
+           .then(response => response.text())
+           .then(data => document.getElementById('workout-list').innerHTML = data);
+   </script>
+</body>
+</html>
+---
+
+Testing
+
+1. Deploy the WAR file to a servlet container like Apache Tomcat.
+
+2. Use register.html to create users and workouts.html for further.
+
+---
